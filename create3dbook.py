@@ -79,7 +79,9 @@ class book_3d:
             model_x = None
             model_y = None
 
+            ox = None
             for x in range(0, img_width, sample_step):
+                ox = x
                 r, g, b = img.getpixel((x, y))
                 # Check if the pixel is not white (background)
                 if (r, g, b) != (255, 255, 255):
@@ -113,6 +115,18 @@ class book_3d:
                             model_y = y * scale_factor
                             count = 1
                             depth = current_depth
+
+            # Map image coordinates to model coordinates.
+            current_model_x = ox * scale_factor
+            # current_model_y = y * scale_factor
+
+            # Create a small convex block at the coordinate.
+            # The block size here is set equal to the scaled sample step.
+            convex = self.get_convex(depth, model_x,
+                                     current_model_x + (sample_step * scale_factor),
+                                     model_y,
+                                     model_y + (sample_step * scale_factor))
+        convexs.append(convex)
 
         self.model = brail_char.merge_many_meshes(convexs)
 
