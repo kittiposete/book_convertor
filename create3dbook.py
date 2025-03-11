@@ -66,70 +66,39 @@ class book_3d:
 
         # Define the sampling resolution and scale factors.
         # Adjust these values as needed to map image pixels to model coordinates.
-        sample_step = 4  # pixels per sample
+        sample_step = 1  # pixels per sample
         scale_factor = 15 / sample_step  # to map into model scale
 
+        work = img_height // sample_step
         convexs = []
 
-        work = img_height // sample_step
         for y in range(0, img_height, sample_step):
             print("processing background: ", y // sample_step, " of ", work)
-            depth = None
-            count = 0
-            model_x = None
-            model_y = None
-
-            ox = None
             for x in range(0, img_width, sample_step):
-                ox = x
                 r, g, b = img.getpixel((x, y))
                 # Check if the pixel is not white (background)
                 if (r, g, b) != (255, 255, 255):
                     # Dark pixels (assumed text) remain flat, others extrude
                     # Adjust threshold as needed
-
                     if r + g + b < 600:
-                        current_depth = 4
+                        depth = 4
                     elif r + g + b < 690:
-                        current_depth = 8
+                        depth = 8
                     else:
-                        current_depth = 10  # extruded background region
+                        depth = 10  # extruded background region
 
-                    if current_depth == depth:
-                        count += 1
-                    else:
-                        if depth is not None:
-                            # Map image coordinates to model coordinates.
-                            current_model_x = x * scale_factor
-                            # current_model_y = y * scale_factor
+                    # Map image coordinates to model coordinates.
+                    model_x = x * scale_factor
+                    model_y = y * scale_factor
 
-                            # Create a small convex block at the coordinate.
-                            # The block size here is set equal to the scaled sample step.
-                            convex = self.get_convex(depth, model_x,
-                                                     current_model_x + (sample_step * scale_factor),
-                                                     model_y,
-                                                     model_y + (sample_step * scale_factor))
-                            convexs.append(convex)
-                        else:
-                            model_x = x * scale_factor
-                            model_y = y * scale_factor
-                            count = 1
-                            depth = current_depth
+                    # Create a small convex block at the coordinate.
+                    # The block size here is set equal to the scaled sample step.
+                    convex = self.get_convex(depth, model_x, model_x + (sample_step * scale_factor),
+                                             model_y, model_y + (sample_step * scale_factor))
+                    convexs.append(convex)
 
-            # Map image coordinates to model coordinates.
-            current_model_x = ox * scale_factor
-            # current_model_y = y * scale_factor
-
-            # Create a small convex block at the coordinate.
-            # The block size here is set equal to the scaled sample step.
-            convex = self.get_convex(depth, model_x,
-                                     current_model_x + (sample_step * scale_factor),
-                                     model_y,
-                                     model_y + (sample_step * scale_factor))
-        convexs.append(convex)
-
+        # Merge all convex blocks into a single mesh
         convexs.append(self.model)
-
         self.model = brail_char.merge_many_meshes(convexs)
 
     def __add_char(self, char, x, y, size):
