@@ -128,6 +128,8 @@ class book_3d:
                                      model_y + (sample_step * scale_factor))
         convexs.append(convex)
 
+        convexs.append(self.model)
+
         self.model = brail_char.merge_many_meshes(convexs)
 
     def __add_char(self, char, x, y, size):
