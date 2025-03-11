@@ -2,7 +2,7 @@ import numpy as np
 from stl import mesh
 
 
-def __create_ball(radius=1, segments=64):
+def __create_ball(radius=0.5, segments=64):
     # Create a grid of points in spherical coordinates
     phi = np.linspace(0, np.pi, segments)
     theta = np.linspace(0, 2 * np.pi, segments)
@@ -56,13 +56,20 @@ def translate_mesh(mesh, translation):
     translation = np.array(translation)
     for i in range(len(mesh.vectors)):
         for j in range(3):
-            mesh.vectors[i][j] = mesh.vectors[i][j] + (translation * 2)
+            mesh.vectors[i][j] = mesh.vectors[i][j] + (translation * 1)  # * 2)
     return mesh
 
 
 def merge_meshes(mesh1, mesh2):
     combined_mesh = mesh.Mesh(np.concatenate([mesh1.data, mesh2.data]))
     return combined_mesh
+
+
+def scale_mesh(mesh, scale):
+    for i in range(len(mesh.vectors)):
+        for j in range(3):
+            mesh.vectors[i][j] *= scale
+    return mesh
 
 
 def ball():
@@ -121,7 +128,9 @@ def char_to_braille(char):
 
     mapping = braille_map.get(str(char).upper())
     if not mapping:
-        raise ValueError(f"Braille representation for character {char} is not defined.")
+        # raise ValueError(f"Braille representation for character {char} is not defined.")
+        print("warning", f"Braille representation for character {char} is not defined.")
+        return None
 
     # Get the initial ball mesh for the first dot
     result = None
