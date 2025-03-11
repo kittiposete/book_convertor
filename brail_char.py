@@ -2,7 +2,7 @@ import numpy as np
 from stl import mesh
 
 
-def __create_ball(radius=0.5, segments=64):
+def __create_ball(radius=0.5, segments=32):
     # Create a grid of points in spherical coordinates
     phi = np.linspace(0, np.pi, segments)
     theta = np.linspace(0, 2 * np.pi, segments)

@@ -1,4 +1,7 @@
+import datetime
+
 import numpy as np
+from PIL import Image
 from stl import mesh
 
 import brail_char
@@ -41,30 +44,65 @@ class book_3d:
     def __init__(self, width, height, image_path):
         self.width = width
         self.height = height
+        self.image_path = image_path
 
-        depth = 1
-        # self.model = create_box(width, height, depth)
+        # Create a base flat model
         print("create box with width: ", width, " height: ", height)
         self.model = create_box(width * 15, height * 15, 1)
 
+        # Process OCR header and add text (flat)
         header = gemini_anaylize_image.analyze_image(image_path)
         header_lines = [header[i:i + 50] for i in range(0, len(header), 50)]
-        # self.add_text(header, 0, height + 10, 0, 10)
         for i, line in enumerate(header_lines):
             self.add_text(line, 0, height + 10 + (i * 10), 0, 10)
-
         print("done init, header: ", header)
+
+        # Process background to create reliefs based on color
+
+    def process_background(self, image_path):
+        # Open the image using Pillow
+        img = Image.open(image_path).convert('RGB')
+        img_width, img_height = img.size
+
+        # Define the sampling resolution and scale factors.
+        # Adjust these values as needed to map image pixels to model coordinates.
+        sample_step = 1  # pixels per sample
+        scale_factor = 15 / sample_step  # to map into model scale
+
+        work = img_height // sample_step
+        for y in range(0, img_height, sample_step):
+            print("processing background: ", y // sample_step, " of ", work)
+            for x in range(0, img_width, sample_step):
+                r, g, b = img.getpixel((x, y))
+                # Check if the pixel is not white (background)
+                if (r, g, b) != (255, 255, 255):
+                    # Dark pixels (assumed text) remain flat, others extrude
+                    # Adjust threshold as needed
+                    if r + g + b < 600:
+                        depth = 4
+                    elif r + g + b < 690:
+                        depth = 8
+                    else:
+                        depth = 10  # extruded background region
+
+                    # Map image coordinates to model coordinates.
+                    model_x = x * scale_factor
+                    model_y = y * scale_factor
+
+                    # Create a small convex block at the coordinate.
+                    # The block size here is set equal to the scaled sample step.
+                    self.add_convex(depth, model_x, model_x + (sample_step * scale_factor),
+                                    model_y, model_y + (sample_step * scale_factor))
 
     def __add_char(self, char, x, y, size):
         if char == ' ':
             return
 
-        # Create a 3D model of a ball
+        # Create a 3D model of a character in Braille
         char_in_3d = brail_char.char_to_braille(char)
         if char_in_3d is not None:
-            char_in_3d = brail_char.translate_mesh(char_in_3d, [x, y, 15]) # adjust z to 7 to make it more visible
+            char_in_3d = brail_char.translate_mesh(char_in_3d, [x, y, 15])
             char_in_3d = brail_char.scale_mesh(char_in_3d, size)
-            # print("scale: ", size)
             self.model = brail_char.merge_meshes(self.model, char_in_3d)
 
     def add_text(self, text, x, y, w, h):
@@ -76,10 +114,20 @@ class book_3d:
             char_count += 1
 
     def save(self, filename):
+        print("starting process background")
+        start_time = datetime.datetime.now()
+        self.process_background(self.image_path)
+        end_time = datetime.datetime.now()
+        print("done process background in: ", end_time - start_time)
+
         self.model.save(filename)
 
     def add_convex(self, high, x_start, x_end, y_start, y_end):
-        # Define the 8 vertices of the box
+        # Define the 8 vertices of the convex block
+        x_start *= 15
+        x_end *= 15
+        y_start *= 15
+        y_end *= 15
         vertices = np.array([
             [x_start, y_start, 0],
             [x_end, y_start, 0],
@@ -91,7 +139,7 @@ class book_3d:
             [x_start, y_end, high]
         ])
 
-        # Define the 12 triangles composing the box
+        # Define the 12 triangles composing the block
         faces = np.array([
             [0, 3, 1], [1, 3, 2],  # Bottom face
             [0, 1, 4], [1, 5, 4],  # Front face
@@ -101,7 +149,7 @@ class book_3d:
             [4, 5, 6], [4, 6, 7]  # Top face
         ])
 
-        # Create the mesh
+        # Create the convex mesh block
         convex = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
         for i, f in enumerate(faces):
             for j in range(3):
