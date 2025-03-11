@@ -47,7 +47,11 @@ class book_3d:
         self.model = create_box(0, 0, 0)
 
         header = gemini_anaylize_image.analyze_image(image_path)
-        self.add_text(header, 0, height + 10, 0, 10)
+        header_lines = [header[i:i + 50] for i in range(0, len(header), 50)]
+        # self.add_text(header, 0, height + 10, 0, 10)
+        for i, line in enumerate(header_lines):
+            self.add_text(line, 0, height + 10 + (i * 10), 0, 10)
+
         print("done init, header: ", header)
 
     def __add_char(self, char, x, y, size):
