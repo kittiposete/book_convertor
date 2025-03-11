@@ -42,6 +42,7 @@ def __create_ball(radius=1, segments=64):
 
     return ball
 
+
 #
 # def translate_mesh(mesh, translation):
 #     for i in range(len(mesh.vectors)):
@@ -58,40 +59,76 @@ def translate_mesh(mesh, translation):
             mesh.vectors[i][j] = mesh.vectors[i][j] + (translation * 2)
     return mesh
 
+
 def merge_meshes(mesh1, mesh2):
     combined_mesh = mesh.Mesh(np.concatenate([mesh1.data, mesh2.data]))
     return combined_mesh
 
+
 def ball():
     return __create_ball()
 
+
 def char_to_braille(char):
+    # Mapping for Braille dot positions using a 2-column x 3-row cell.
+    # Coordinates represent left column dot and right column dots.
+    # The translation is applied inside translate_mesh, which multiplies each offset by 2.
+    braille_map = {
+        'A': [(0, 0, 0)],
+        'B': [(0, 0, 0), (0, 2, 0)],
+        'C': [(0, 0, 0), (2, 0, 0)],
+        'D': [(0, 0, 0), (2, 0, 0), (2, 2, 0)],
+        'E': [(0, 0, 0), (2, 2, 0)],
+        'F': [(0, 0, 0), (0, 2, 0), (2, 0, 0)],
+        'G': [(0, 0, 0), (0, 2, 0), (2, 0, 0), (2, 2, 0)],
+        'H': [(0, 0, 0), (0, 2, 0), (2, 2, 0)],
+        'I': [(0, 2, 0), (2, 0, 0)],
+        'J': [(0, 2, 0), (2, 0, 0), (2, 2, 0)],
+        'K': [(0, 0, 0), (0, 4, 0)],
+        'L': [(0, 0, 0), (0, 2, 0), (0, 4, 0)],
+        'M': [(0, 0, 0), (0, 4, 0), (2, 0, 0)],
+        'N': [(0, 0, 0), (0, 4, 0), (2, 0, 0), (2, 2, 0)],
+        'O': [(0, 0, 0), (0, 4, 0), (2, 2, 0)],
+        'P': [(0, 0, 0), (0, 2, 0), (0, 4, 0), (2, 0, 0)],
+        'Q': [(0, 0, 0), (0, 2, 0), (0, 4, 0), (2, 0, 0), (2, 2, 0)],
+        'R': [(0, 0, 0), (0, 2, 0), (0, 4, 0), (2, 2, 0)],
+        'S': [(0, 2, 0), (0, 4, 0), (2, 0, 0)],
+        'T': [(0, 2, 0), (0, 4, 0), (2, 0, 0), (2, 2, 0)],
+        'U': [(0, 0, 0), (0, 4, 0), (2, 4, 0)],
+        'V': [(0, 0, 0), (0, 2, 0), (0, 4, 0), (2, 4, 0)],
+        'W': [(0, 2, 0), (2, 0, 0), (2, 2, 0), (2, 4, 0)],
+        'X': [(0, 0, 0), (0, 4, 0), (2, 0, 0), (2, 4, 0)],
+        'Y': [(0, 0, 0), (0, 4, 0), (2, 0, 0), (2, 2, 0), (2, 4, 0)],
+        'Z': [(0, 0, 0), (0, 4, 0), (2, 2, 0), (2, 4, 0)],
+    }
 
-    if str(char).upper() == 'A':
-        # A is ⠁
-        first_ball = translate_mesh(ball(), [0, 0, 0])
-        return first_ball
-    elif str(char).upper() == 'B':
-        # B is ⠃
-        first_ball = translate_mesh(ball(), [0, 0, 0])
-        second_ball = translate_mesh(ball(), [0, 2, 0])
-        return merge_meshes(first_ball, second_ball)
-    elif str(char).upper() == 'C':
-        # C is ⠉
-        first_ball = translate_mesh(ball(), [0, 0, 0])
-        second_ball = translate_mesh(ball(), [2, 0, 0])
-        return merge_meshes(first_ball, second_ball)
+    # Add mappings for digits 0-9
+    # In Grade‑1 Braille the digits 1–9, 0 are represented using the same patterns as A–I, J respectively.
+    number_map = {
+        '1': braille_map['A'],
+        '2': braille_map['B'],
+        '3': braille_map['C'],
+        '4': braille_map['D'],
+        '5': braille_map['E'],
+        '6': braille_map['F'],
+        '7': braille_map['G'],
+        '8': braille_map['H'],
+        '9': braille_map['I'],
+        '0': braille_map['J']
+    }
+    # Update braille_map to include digit mappings
+    braille_map.update(number_map)
 
+    mapping = braille_map.get(str(char).upper())
+    if not mapping:
+        raise ValueError(f"Braille representation for character {char} is not defined.")
 
-if __name__ == '__main__':
-    a_mesh = char_to_braille('a')
-    a_mesh.save('a.stl')
-    print('A saved to a.stl')
-
-    b_mesh = char_to_braille('b')
-    b_mesh.save('b.stl')
-    print('B saved to b.stl')
-
-    c_mesh = char_to_braille('c')
-    c_mesh.save('c.stl')
-    print('C saved to c.stl')
+    # Get the initial ball mesh for the first dot
+    result = None
+    for offset in mapping:
+        ball_mesh = translate_mesh(ball(), offset)
+        if result is None:
+            result = ball_mesh
+        else:
+            result = merge_meshes(result, ball_mesh)
+    return result
