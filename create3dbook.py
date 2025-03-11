@@ -43,7 +43,8 @@ class book_3d:
         self.height = height
 
         depth = 1
-        self.model = create_box(width, height, depth)
+        # self.model = create_box(width, height, depth)
+        self.model = create_box(0, 0, 0)
 
         header = gemini_anaylize_image.analyze_image(image_path)
         self.add_text(header, 0, height + 10, 0, 10)
@@ -62,10 +63,11 @@ class book_3d:
             self.model = brail_char.merge_meshes(self.model, char_in_3d)
 
     def add_text(self, text, x, y, w, h):
-        width_per_char = w / len(text)
         char_count = 0
+        y_adjusted = y
+
         for c in text:
-            self.__add_char(c, x + (char_count * 10), y, max(h, 15))
+            self.__add_char(c, x + (char_count * 10), y_adjusted, 15)
             char_count += 1
 
     def save(self, filename):
