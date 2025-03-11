@@ -44,7 +44,8 @@ class book_3d:
 
         depth = 1
         # self.model = create_box(width, height, depth)
-        self.model = create_box(0, 0, 0)
+        print("create box with width: ", width, " height: ", height)
+        self.model = create_box(width * 15, height * 15, 1)
 
         header = gemini_anaylize_image.analyze_image(image_path)
         header_lines = [header[i:i + 50] for i in range(0, len(header), 50)]
@@ -61,7 +62,7 @@ class book_3d:
         # Create a 3D model of a ball
         char_in_3d = brail_char.char_to_braille(char)
         if char_in_3d is not None:
-            char_in_3d = brail_char.translate_mesh(char_in_3d, [x, y, 0])
+            char_in_3d = brail_char.translate_mesh(char_in_3d, [x, y, 15]) # adjust z to 7 to make it more visible
             char_in_3d = brail_char.scale_mesh(char_in_3d, size)
             # print("scale: ", size)
             self.model = brail_char.merge_meshes(self.model, char_in_3d)
