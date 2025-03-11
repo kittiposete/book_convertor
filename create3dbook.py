@@ -2,6 +2,7 @@ import numpy as np
 from stl import mesh
 
 import brail_char
+import gemini_anaylize_image
 
 
 def create_box(width, height, depth=1):
@@ -37,12 +38,16 @@ def create_box(width, height, depth=1):
 
 
 class book_3d:
-    def __init__(self, width, height):
+    def __init__(self, width, height, image_path):
         self.width = width
         self.height = height
 
         depth = 1
         self.model = create_box(width, height, depth)
+
+        header = gemini_anaylize_image.analyze_image(image_path)
+        self.add_text(header, 0, height + 10, 0, 10)
+        print("done init, header: ", header)
 
     def __add_char(self, char, x, y, size):
         if char == ' ':
@@ -65,3 +70,35 @@ class book_3d:
 
     def save(self, filename):
         self.model.save(filename)
+
+    def add_convex(self, high, x_start, x_end, y_start, y_end):
+        # Define the 8 vertices of the box
+        vertices = np.array([
+            [x_start, y_start, 0],
+            [x_end, y_start, 0],
+            [x_end, y_end, 0],
+            [x_start, y_end, 0],
+            [x_start, y_start, high],
+            [x_end, y_start, high],
+            [x_end, y_end, high],
+            [x_start, y_end, high]
+        ])
+
+        # Define the 12 triangles composing the box
+        faces = np.array([
+            [0, 3, 1], [1, 3, 2],  # Bottom face
+            [0, 1, 4], [1, 5, 4],  # Front face
+            [1, 2, 5], [2, 6, 5],  # Right face
+            [2, 3, 6], [3, 7, 6],  # Back face
+            [3, 0, 7], [0, 4, 7],  # Left face
+            [4, 5, 6], [4, 6, 7]  # Top face
+        ])
+
+        # Create the mesh
+        convex = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+        for i, f in enumerate(faces):
+            for j in range(3):
+                convex.vectors[i][j] = vertices[f[j], :]
+
+        self.model = brail_char.merge_meshes(self.model, convex)
+        return convex
