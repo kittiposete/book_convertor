@@ -64,6 +64,10 @@ def merge_meshes(mesh1, mesh2):
     combined_mesh = mesh.Mesh(np.concatenate([mesh1.data, mesh2.data]))
     return combined_mesh
 
+def merge_many_meshes(meshes):
+    combined_mesh = mesh.Mesh(np.concatenate([m.data for m in meshes]))
+    return combined_mesh
+
 
 def scale_mesh(mesh, scale):
     for i in range(len(mesh.vectors)):

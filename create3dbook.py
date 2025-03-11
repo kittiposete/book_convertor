@@ -69,6 +69,8 @@ class book_3d:
         sample_step = 4  # pixels per sample
         scale_factor = 15 / sample_step  # to map into model scale
 
+        convexs = []
+
         work = img_height // sample_step
         for y in range(0, img_height, sample_step):
             print("processing background: ", y // sample_step, " of ", work)
@@ -101,13 +103,18 @@ class book_3d:
 
                             # Create a small convex block at the coordinate.
                             # The block size here is set equal to the scaled sample step.
-                            self.add_convex(depth, model_x,
-                                            current_model_x + (sample_step * scale_factor),
-                                            model_y, model_y + (sample_step * scale_factor))
+                            convex = self.get_convex(depth, model_x,
+                                                     current_model_x + (sample_step * scale_factor),
+                                                     model_y,
+                                                     model_y + (sample_step * scale_factor))
+                            convexs.append(convex)
                         else:
                             model_x = x * scale_factor
                             model_y = y * scale_factor
                             count = 1
+                            depth = current_depth
+
+        self.model = brail_char.merge_many_meshes(convexs)
 
     def __add_char(self, char, x, y, size):
         if char == ' ':
@@ -137,7 +144,7 @@ class book_3d:
 
         self.model.save(filename)
 
-    def add_convex(self, high, x_start, x_end, y_start, y_end):
+    def get_convex(self, high, x_start, x_end, y_start, y_end):
         # Define the 8 vertices of the convex block
         x_start *= 15
         x_end *= 15
@@ -170,5 +177,5 @@ class book_3d:
             for j in range(3):
                 convex.vectors[i][j] = vertices[f[j], :]
 
-        self.model = brail_char.merge_meshes(self.model, convex)
+        # self.model = brail_char.merge_meshes(self.model, convex)
         return convex
