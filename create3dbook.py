@@ -58,8 +58,10 @@ class book_3d:
 
     def add_text(self, text, x, y, w, h):
         width_per_char = w / len(text)
+        char_count = 0
         for c in text:
-            self.__add_char(c, x, y + 10, 10)
+            self.__add_char(c, x + (char_count * 10), y, max(h, 15))
+            char_count += 1
 
     def save(self, filename):
         self.model.save(filename)
