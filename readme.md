@@ -38,3 +38,6 @@ This software still only the concept. But you can try to use the software by fol
 6. check the output in `output_fine_3.stl`
 
 example input and output is `Set-Throry.jpeg` `output.stl` file.
+
+*tip* if background look pixelated, try to decrease the `sample_step` in `create3dbook.py` in
+function `process_background` default is 10 but it may cause slow converting and big output file.
