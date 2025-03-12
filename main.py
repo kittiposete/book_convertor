@@ -6,7 +6,7 @@ from PIL import Image
 import create3dbook
 
 start_time = datetime.datetime.now()
-image_path = "/Users/kittipos/Developer/book_convertor/Set-Theory.png"
+image_path = "/Users/kittipos/Developer/book_convertor/Set-Theory.jpeg"
 
 # Load the image from file
 image = Image.open(image_path)
@@ -26,7 +26,7 @@ for i in range(len(data['text'])):
         print(f'Text: \'{text}\', Location: ({x}, {image_height - y}, {w}, {h})')
         model.add_text(text, x, image_height - y, w, h)
 
-model.save('output_fine_3.stl')
+model.save('output_example.stl')
 
 end_time = datetime.datetime.now()
 
