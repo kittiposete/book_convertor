@@ -26,7 +26,7 @@ for i in range(len(data['text'])):
         print(f'Text: \'{text}\', Location: ({x}, {image_height - y}, {w}, {h})')
         model.add_text(text, x, image_height - y, w, h)
 
-model.save('output_example.stl')
+model.save('output.stl')
 
 end_time = datetime.datetime.now()
 
