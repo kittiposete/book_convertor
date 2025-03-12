@@ -66,7 +66,7 @@ class book_3d:
 
         # Define the sampling resolution and scale factors.
         # Adjust these values as needed to map image pixels to model coordinates.
-        sample_step = 1  # pixels per sample
+        sample_step = 10  # pixels per sample
         scale_factor = 15 / sample_step  # to map into model scale
 
         work = img_height // sample_step
