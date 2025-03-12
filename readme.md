@@ -32,8 +32,9 @@ This software still only the concept. But you can try to use the software by fol
 
 1. install python 3.12.0
 2. `pip install Pillow numpy-stl pytesseract` then `pip install -q -U google-genai`
-3. in `main.py` change the `file_path` to your file path.
-4. run `python main.py`
-5. check the output in `output_fine_3.stl`
+3. In ai_key.py change the `api_key` to your gemini api key.
+4. in `main.py` change the `file_path` to your file path.
+5. run `python main.py`
+6. check the output in `output_fine_3.stl`
 
-example output have been pro
+example input and output is `Set-Throry.jpeg` `output.stl` file.
